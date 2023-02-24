@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import rospy
-from sensor_msgs.msg import LaserScan 
+from sensor_msgs.msg import LaserScan
+from matus_showcase.msg import DetectedObstacles
 from math import *
 
 
