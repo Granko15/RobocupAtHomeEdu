@@ -21,7 +21,7 @@ class DetectObstacles:
         self.pub = rospy.Publisher('freePaths', DetectedObstacles)
 
         self.rate = rospy.Rate(5)
-        self.detectionRange = 0.5
+        self.detectionRange = 0.8
 
         # directionRanges = [front, frontRight, right, backRight, back, backLeft, left, frontLeft]
         self.directionRanges = [[] for _ in range(8)]
@@ -37,101 +37,44 @@ class DetectObstacles:
         }
         while not rospy.is_shutdown():
             # volam publishovanie custom messagu
-            self.publisPathsMessage()
-
+            self.publishPathsMessage()
             print(self.possiblePaths())
-            rospy.sleep(1)
+            rospy.sleep(0)
     
     def shutdown(self):
+        
         rospy.loginfo('Stop jupyter')
-        rospy.sleep(10)
+        rospy.sleep(2)
 
     def callback(self, msg):
-        self.directionRanges[0] = msg.ranges[355:359] + msg.ranges[0:4]
+
+        self.directionRanges[0] = msg.ranges[337:359] + msg.ranges[0:21]
         angle = 45
         for i in range(len(self.directionRanges) - 1):
-            self.directionRanges[i+1] = msg.ranges[angle - 5 : angle + 5]
+            self.directionRanges[i+1] = msg.ranges[angle - 22 : angle + 22]
             angle += 45
         self.checkDistances()
 
-    def checkDistances(self):
-        obstacle = False
-        # Front
-        for i in self.directionRanges[0]:
-            if not isinf(i):
-                if i <= self.detectionRange:
-                    obstacle = True
-                    break
-        self.directionObstacles['Front'] = obstacle
-        obstacle = False
-            
-        # FrontRight
-        for i in self.directionRanges[1]:
-            if not isinf(i):
-                if i <= self.detectionRange:
-                    obstacle = True
-                    break
-        self.directionObstacles['FrontRight'] = obstacle
-        obstacle = False
+        def checkDistances(self):
+        directions = ['Front', 'FrontRight', 'Right', 'BackRight',
+                    'Back', 'BackLeft', 'Left', 'FrontLeft']
 
-        # Right
-        for i in self.directionRanges[2]:
-            if not isinf(i):
-                if i <= self.detectionRange:
-                    obstacle = True
-                    break
-        self.directionObstacles['Right'] = obstacle
-        obstacle = False
-
-        # BackRight
-        for i in self.directionRanges[3]:
-            if not isinf(i):
-                if i <= self.detectionRange:
-                    obstacle = True
-                    break
-        self.directionObstacles['BackRight'] = obstacle
-        obstacle = False
-
-        # Back
-        for i in self.directionRanges[4]:
-            if not isinf(i):
-                if i <= self.detectionRange:
-                    obstacle = True
-                    break
-        self.directionObstacles['Back'] = obstacle
-        obstacle = False
-
-        # BackLeft
-        for i in self.directionRanges[5]:
-            if not isinf(i):
-                if i <= self.detectionRange:
-                    obstacle = True
-                    break
-        self.directionObstacles['BackLeft'] = obstacle
-        obstacle = False
-
-        # Left
-        for i in self.directionRanges[6]:
-            if not isinf(i):
-                if i <= self.detectionRange:
-                    obstacle = True
-                    break
-        self.directionObstacles['Left'] = obstacle
-        obstacle = False
-
-        # FrontLeft
-        for i in self.directionRanges[7]:
-            if not isinf(i):
-                if i <= self.detectionRange:
-                    obstacle = True
-                    break
-        self.directionObstacles['FrontLeft'] = obstacle
+        for index, direction in enumerate(directions):
+            obstacle = False
+            for i in self.directionRanges[index]:
+                if not isinf(i):
+                    if i <= self.detectionRange:
+                        obstacle = True
+                        break
+            self.directionObstacles[direction] = obstacle
 
     def possiblePaths(self):
+
         return [i[0] for i in self.directionObstacles.items() if not i[1]]
     
     #publishujem svoj custom message
-    def publisPathsMessage(self):
+    def publishPathsMessage(self):
+
         msg = DetectedObstacles
         msg.front = 1 if self.directionObstacles["Front"] else 0
         msg.frontRight = 1 if self.directionObstacles["FrontRight"] else 0
